@@ -6,6 +6,27 @@ jobs:
       - image: circleci/android:api-28-alpha
     environment:
       JVM_OPTS: -Xmx3200m
+    before_script:
+      - export GRADLE_USER_HOME=$(pwd)/.gradle
+      - chmod +x ./gradlew
+      - apt-get --quiet update --yes
+      - apt-get --quiet install --yes wget tar unzip lib32stdc++6 lib32z1
+      - mkdir -p android-sdk-linux/cmdline-tools
+      - export ANDROID_SDK_ROOT=$PWD/android-sdk-linux
+      - cd android-sdk-linux/cmdline-tools
+      - wget --quiet --output-document=android-sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_COMMAND_LINE_TOOLS}_latest.zip
+      - unzip android-sdk.zip
+      - rm android-sdk.zip
+      - mv cmdline-tools version
+      - echo y | version/bin/sdkmanager "platforms;android-${ANDROID_COMPILE_SDK}" >/dev/null
+      - echo y | version/bin/sdkmanager "platform-tools" >/dev/null
+      - echo y | version/bin/sdkmanager "build-tools;${ANDROID_BUILD_TOOLS}" >/dev/null
+      - export PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools/
+      - set +o pipefail
+      - yes | version/bin/sdkmanager --licenses
+      - set -o pipefail
+      - cd ../../
+      - chmod +x ./gradlew
     steps:
       - checkout
       - restore_cache:
